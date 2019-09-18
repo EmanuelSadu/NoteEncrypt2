@@ -8,8 +8,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 
 public class ConfigureRecycler {
+
+    private ItemTouchHelper it;
+    private CustomAdapter adapter;
+    RecyclerView notesList;
+
     public CustomAdapter getAdapter() {
         return adapter;
     }
@@ -18,28 +24,26 @@ public class ConfigureRecycler {
         return it;
     }
 
-    private ItemTouchHelper it;
-    private CustomAdapter adapter;
 
     public RecyclerView getNotesList() {
         return notesList;
     }
 
-    RecyclerView notesList;
+
 
     ConfigureRecycler(AppCompatActivity activity) {
         configureRecyclerView(activity);
     }
+
     public void configureRecyclerView(AppCompatActivity activity) {
+        Log.d("CR:CfgRView","get recycleVIew and Populate");
         notesList = activity.findViewById(R.id.notesList);
-        AppDatabase database = Room.databaseBuilder(activity, AppDatabase.class, "db-contacts")
-                .allowMainThreadQueries()   //Allows room to do operation on main thread
-                .build();
-        NoteDao n = database.getNoteDao();
+
+        NoteDao noteQuerryInterface = Utils.getInstance().getNoteQuerryInterfce(activity,null  );
         try {
-            if (n.getFromPosition(0).getTitle().equals("") && n.getFromPosition(0).getBody().equals("")) {
-                n.delete(n.getFromPosition(0));
-                n.decreasePositions(0);
+            if (noteQuerryInterface.getFromPosition(0).getTitle().equals("") && noteQuerryInterface.getFromPosition(0).getBody().equals("")) {
+                noteQuerryInterface.delete(noteQuerryInterface.getFromPosition(0));
+                noteQuerryInterface.decreasePositions(0);
             }
         }
         catch (Exception ignore) {
@@ -50,9 +54,12 @@ public class ConfigureRecycler {
         // set up the RecyclerView
         notesList.setLayoutManager(new LinearLayoutManager(activity));
         notesList.setHasFixedSize(false);
-        adapter = new CustomAdapter(notesList, (CoordinatorLayout) activity.findViewById(R.id.mainLayout), activity, n);
+
+        adapter = new CustomAdapter(notesList, (CoordinatorLayout) activity.findViewById(R.id.mainLayout), activity, noteQuerryInterface);
+        adapter.setActivity(activity);
         adapter.setClickListener((CustomAdapter.ItemClickListener) activity);
         notesList.setAdapter(adapter);
+
         //configures what happens when using gestures on recyclerview
         ItemTouchHelper.SimpleCallback callback = new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, ItemTouchHelper.START | ItemTouchHelper.END) {
 

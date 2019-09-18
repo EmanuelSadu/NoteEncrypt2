@@ -5,14 +5,10 @@ import android.arch.persistence.room.PrimaryKey;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.util.Base64;
+import android.util.Log;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.Timestamp;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.Calendar;
-import java.util.Date;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -25,20 +21,13 @@ public class Note {
     private String body;
     private int position;
     private String timeStamp;
-    private static SimpleDateFormat simpleDateFormat= new SimpleDateFormat("dd-MM-yy-hh-mm");
-    public boolean isHidden() {
-        return hidden;
-    }
-
-    public void setHidden(boolean hidden) {
-        this.hidden = hidden;
-    }
-
+    private boolean isEncrypted;
     private boolean hidden = false;
+    private String file;
 
     //Encrypts note with AES
     public Note encrypt() {
-        if (Utils.getInstance().isEnc()) {
+        if (this.isEncrypted== true) {
             try {
                 String passwd = Utils.getInstance().getPasswd();
 
@@ -46,10 +35,11 @@ public class Note {
                         .substring(48)
                         .getBytes(StandardCharsets.UTF_8));
 
-                String encTitle = Utils.getInstance().encrypt(iv,title,passwd);
+                String encTitle = title;
                 String encBody = Utils.getInstance().encrypt(iv,body,passwd);
                 return new Note(encTitle, encBody, position);
             } catch (Exception ignore) {
+
                 return new Note("", "", 0);
             }
         }
@@ -60,8 +50,10 @@ public class Note {
     Note decrypt() {
         String passwd = Utils.getInstance().getPasswd();
 
-        if (!Utils.getInstance().isEnc())
+        if (this.isEncrypted== false) {
+            Log.d("Note:dec","Wrong");
             return this;
+        }
         try {
             IvParameterSpec iv = new IvParameterSpec(Utils.getInstance().hashBasedCheck(String.valueOf(this.key))
                     .substring(48)
@@ -69,9 +61,12 @@ public class Note {
 
            String decTitle = null,decBody = null;
             if (!title.equals(""))
-                decTitle = Utils.getInstance().decrypt(iv,title,passwd);
-            if (!body.equals(""))
-                decBody = Utils.getInstance().decrypt(iv,body,passwd);
+                decTitle = title;
+            if (!body.equals("")) {
+                System.out.println(body);
+                decBody = Utils.getInstance().decrypt(iv, body, passwd);
+
+            }
             return new Note(decTitle, decBody, position);
         } catch (Exception e) {
             e.printStackTrace();
@@ -95,13 +90,12 @@ public class Note {
     @PrimaryKey(autoGenerate = true)
     private int key;
 
+
     Note(@NonNull String title, String body, int position) {
         this.title = title;
         this.body = body;
         this.position = position;
 
-        Date now = Calendar.getInstance().getTime();
-        this.timeStamp=simpleDateFormat.format(now);
     }
 
 
@@ -137,5 +131,29 @@ public class Note {
 
     void setBody(String body) {
         this.body = body;
+    }
+
+    public boolean isEncrypted() {
+        return isEncrypted;
+    }
+
+    public void setEncrypted(boolean encrypted) {
+        isEncrypted = encrypted;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    public String getFile() {
+        return file;
+    }
+
+    public void setFile(String file) {
+        this.file = file;
     }
 }

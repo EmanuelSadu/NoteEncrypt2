@@ -11,10 +11,12 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/notesList"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true">
+        app:layout_anchor="@+id/usePin"
+        app:layout_anchorGravity="start|top">
 
     </android.support.v7.widget.RecyclerView>
 
@@ -55,7 +57,7 @@
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"

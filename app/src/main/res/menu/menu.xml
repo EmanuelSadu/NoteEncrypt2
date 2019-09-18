@@ -3,9 +3,18 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/app_bar_switch"
+        android:minWidth="50dp"
+        android:orderInCategory="101"
+        android:title="Switch"
+        android:titleCondensed="Encrypted/Decrypted"
+        android:tooltipText="Enrypt"
+        app:actionLayout="@layout/switch_item"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/empty"
         android:icon="@drawable/ic_more_vert_black_24dp"
-        android:orderInCategory="101"
+        android:orderInCategory="102"
         android:title="menu"
         app:showAsAction="always">
 
@@ -31,5 +40,6 @@
 
         </menu>
     </item>
+
 
 </menu>

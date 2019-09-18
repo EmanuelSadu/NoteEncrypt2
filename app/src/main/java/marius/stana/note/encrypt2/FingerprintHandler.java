@@ -3,8 +3,8 @@ package marius.stana.note.encrypt2;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.hardware.fingerprint.FingerprintManager;
-import android.os.CancellationSignal;
+import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
+import android.support.v4.os.CancellationSignal;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -12,7 +12,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class FingerprintHandler extends FingerprintManager.AuthenticationCallback {
+public class FingerprintHandler extends FingerprintManagerCompat.AuthenticationCallback {
     private TextView tv;
     private RecyclerView r;
     private ImageView im;
@@ -49,7 +49,7 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
         super.onAuthenticationHelp(helpCode, helpString);
     }
     @Override
-    public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
+    public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
         super.onAuthenticationSucceeded(result);
         tv.setVisibility(View.INVISIBLE);
         im.setVisibility(View.INVISIBLE);
@@ -66,11 +66,11 @@ public class FingerprintHandler extends FingerprintManager.AuthenticationCallbac
         tv.setTextColor(Color.RED);
         im.setImageResource(R.drawable.ic_fingerprint_black_96dp);
     }
-    public void doAuth(FingerprintManager manager,
-                       FingerprintManager.CryptoObject obj) {
+    public void doAuth(FingerprintManagerCompat manager,
+                       FingerprintManagerCompat.CryptoObject obj) {
         CancellationSignal signal = new CancellationSignal();
         try {
-            manager.authenticate(obj, signal, 0, this, null);
+            manager.authenticate(obj, 0, signal, this, null);
         }
         catch(SecurityException sce) {}
     }

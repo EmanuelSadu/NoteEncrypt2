@@ -16,7 +16,7 @@ public interface NoteDao {
     void update(Note note);
     @Delete
     void delete(Note note);
-    @Query("SELECT * FROM note")
+    @Query("SELECT * FROM note WHERE position >=0")
     List<Note> getNotes();
     @Query("SELECT * FROM note WHERE position == :position")
     Note getFromPosition(int position);
@@ -32,4 +32,8 @@ public interface NoteDao {
     List<Note> getHidden();
     @Query("Update note SET hidden = 1 WHERE position == :position")
     void setHidden(int position);
+    @Query("Update note SET timeStamp = :createTIme WHERE position == :position")
+    void updateTimestampFromPosition(int position,String createTIme);
+    @Query("Update note SET isEncrypted = :enc WHERE position == :position")
+    void updateIsEncriptedFromPosition(int position,boolean enc);
 }

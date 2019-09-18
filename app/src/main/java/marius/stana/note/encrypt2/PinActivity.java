@@ -54,7 +54,7 @@ public class PinActivity extends AppCompatActivity {
             findViewById(R.id.msg2).setVisibility(View.VISIBLE);
         }
         final SharedPreferences prefs = this.getSharedPreferences(
-                "com.example.victor.notes", Context.MODE_PRIVATE);
+                "marius.stana.note.encrypt2", Context.MODE_PRIVATE);
         p.setPinViewEventListener(new Pinview.PinViewEventListener() {
             @Override
             public void onDataEntered(Pinview pinview, boolean fromUser) {

@@ -28,4 +28,6 @@
     <string name="finger">Finger</string>
     <string name="scan_fingerprint_to_reveal_notes">Scan fingerprint to reveal notes</string>
     <string name="m_menu">m_menu</string>
+    <string name="add_title">Title</string>
+    <string name="add_note">Note</string>
 </resources>

@@ -1,12 +1,20 @@
 package marius.stana.note.encrypt2;
 
+import android.app.Activity;
+import android.arch.persistence.room.Room;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.support.v7.app.AlertDialog;
+import android.text.InputType;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Base64;
+import android.widget.EditText;
 
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -14,9 +22,16 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.util.Calendar;
+import java.util.Date;
 
 class Utils {
+    private boolean enc;
+    private boolean isEncFieldSet;
+    private static final Utils ourInstance = new Utils();
 
+    private static SimpleDateFormat simpleDateFormat= new SimpleDateFormat("EEE, d MM yyyy hh:mm aaa");
+    private String passwd=null;
 
     public String getPasswd() {
         return passwd;
@@ -24,8 +39,8 @@ class Utils {
 
     public void setPasswd(String passwd) {
         this.passwd = passwd;
-
     }
+
     public String encrypt(IvParameterSpec iv, String text, String passwd) {
 
         MessageDigest digest = null;
@@ -56,45 +71,7 @@ class Utils {
         }
         return null;
     }
-    public boolean isEnc() {
-        return enc;
-    }
 
-    public String hashBasedCheck(String data) {
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance("SHA-512");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        md.update(data.getBytes());
-        return bytesToHex(md.digest()).substring(64);
-    }
-
-    public String bytesToHex(byte[] bytes) {
-        StringBuffer result = new StringBuffer();
-        for (byte byt : bytes)
-            result.append(Integer.toString((byt & 0xff) + 0x100, 16).substring(1));
-        return result.toString();
-    }
-
-
-    private String passwd=null;
-
-    public void setEnc(boolean enc) {
-        this.enc = enc;
-    }
-
-    private boolean enc;
-    private static final Utils ourInstance = new Utils();
-
-    static Utils getInstance() {
-        return ourInstance;
-    }
-
-    private Utils() {
-
-    }
     public String decrypt(IvParameterSpec iv, String data, String passwd) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -120,6 +97,91 @@ class Utils {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public boolean isEnc() {
+        return enc;
+    }
+
+    public void setEnc(boolean enc) {
+        this.enc = enc;
+    }
+
+    public String hashBasedCheck(String data) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-512");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        md.update(data.getBytes());
+        return bytesToHex(md.digest()).substring(64);
+    }
+
+    public String bytesToHex(byte[] bytes) {
+        StringBuffer result = new StringBuffer();
+        for (byte byt : bytes)
+            result.append(Integer.toString((byt & 0xff) + 0x100, 16).substring(1));
+        return result.toString();
+    }
+
+    static Utils getInstance() {
+        return ourInstance;
+    }
+
+    private Utils() {
+
+    }
+
+
+    public NoteDao getNoteQuerryInterfce(Context activity,String db){
+        if(db == null)
+            db = "db-contacts2";
+        AppDatabase database = Room.databaseBuilder(activity, AppDatabase.class, db)
+                .allowMainThreadQueries()   //Allows room to do operation on main thread
+                .build();
+        return  database.getNoteDao();
+    }
+
+    public String getTimeRightNow(){
+        Date now = Calendar.getInstance().getTime();
+       return simpleDateFormat.format(now);
+    }
+
+
+    public boolean isEncFieldSet() {
+        return isEncFieldSet;
+    }
+
+    public void setEncFieldSet(boolean encFieldSet) {
+        isEncFieldSet = encFieldSet;
+    }
+
+
+
+    public  EditText getEditText(Activity activity){
+        final EditText input = new EditText(activity);
+        input.setTransformationMethod(new PasswordTransformationMethod());
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        return input;
+    }
+
+    public AlertDialog.Builder getAlertBox(Activity activity,String information,final EditText input) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setTitle("Password");
+        builder.setCancelable(false);
+        builder.setMessage(information);
+
+        // Set up the input
+
+        builder.setView(input);
+
+        return builder;
+    }
+
+    public SharedPreferences getSharedPrefs(Context activity){
+        return  activity.getSharedPreferences(
+                "marius.stana.note.encrypt2", Context.MODE_PRIVATE);
     }
 
 }

@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.fingerprint.FingerprintManager;
+import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -61,51 +62,16 @@ import javax.crypto.spec.IvParameterSpec;
 public class MainActivity extends AppCompatActivity implements CustomAdapter.ItemClickListener {
     CustomAdapter adapter;
     private long mLastClickTime = 0;
-    ConfigureRecycler r;
+    ConfigureRecycler recycleView;
     private String pass;
-    FingerprintManager fingerprintManager;
+    FingerprintManagerCompat fingerprintManager = BiometricUtils.getFingerprintManagerCompat(this);
     private MenuItem fg;
     SearchView searchView;
 
-    private void decryptAll(NoteDao n) {
-        for (int i = 0; i < n.getNotes().size() - 1; i++) {
-            Note cur = n.getFromPosition(i);
-            Note curDec = cur.decrypt();
-            cur.setTitle(curDec.getTitle());
-            //set  !!
-            cur.setBody(curDec.getTimeStamp());
-            n.update(cur);
-        }
-        Utils.getInstance().setEnc(false);
-        n.delete(n.getFromPosition(-1));
-        r.notesList.getRecycledViewPool().clear();
-        adapter.notifyDataSetChanged();
-    }
+    public void getPassword(final String information, final MenuItem item, final String action,Integer position) {
 
-    private void encryptAll(NoteDao n) {
-        for (int i = n.getNotes().size() - 2; i >= 0; i--) {
-            Note cur = n.getFromPosition(i);
-            cur.setTitle(cur.encrypt().getTitle());
-            cur.setBody(cur.encrypt().getBody());
-            n.update(cur);
-        }
-
-        r.notesList.getRecycledViewPool().clear();
-        adapter.notifyDataSetChanged();
-    }
-
-    public void getPassword(final String information, final MenuItem item, final String action) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Password");
-        builder.setCancelable(false);
-        builder.setMessage(information);
-
-        // Set up the input
-
-        final EditText input = new EditText(this);
-        input.setTransformationMethod(new PasswordTransformationMethod());
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        builder.setView(input);
+        final EditText input = Utils.getInstance().getEditText(this);
+        final AlertDialog.Builder builder = Utils.getInstance().getAlertBox(this,information,input);
 
         // Set up the buttons
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -113,39 +79,49 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
             public void onClick(DialogInterface dialog, int which) {
                 invalidateOptionsMenu();
                 pass = input.getText().toString();
-                NoteDao n = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "db-contacts")
-                        .allowMainThreadQueries()
-                        .build().getNoteDao();
-                if (action.equals("check")) {
+                NoteDao n = Utils.getInstance().getNoteQuerryInterfce(getApplicationContext(),null);
+
+                if (action.equals("check_edit")) {
                     if (n.getFromPosition(-1).getBody().equals(Utils.getInstance().hashBasedCheck(pass))) {
                         Utils.getInstance().setPasswd(pass);
-                        configureLayout();
+                        Intent add = new Intent(MainActivity.this, AddNote.class);
+                        add.putExtra("position", String.valueOf(position)); //open for add ?
+                        startActivityForResult(add, 0);
+
 
                     } else {
-                        getPassword("Wrong password, please try again", item, action);
+                        getPassword("Wrong password, please try again", item, action,position);
                         builder.setTitle("Wrong pass");
                     }
+                }
+
+                if (action.equals("check_menu")) {
+                    if (n.getFromPosition(-1).getBody().equals(Utils.getInstance().hashBasedCheck(pass))) {
+                        Utils.getInstance().setPasswd(pass);
+                        Utils.getInstance().setEnc(true);
+
+                    } else {
+                        getPassword("Wrong password, please try again", item, action,position);
+                        builder.setTitle("Wrong pass");
+                    }
+                    item.setIcon(R.drawable.ic_no_encryption_black_24dp);
+                    item.setTitle("Disable encryption");
                 }
 
                 if (action.equals("enc")) {
                     Utils.getInstance().setEnc(true);
                     Utils.getInstance().setPasswd(pass);
                     n.insert(new Note("enc", Utils.getInstance().hashBasedCheck(pass), -1));
+                    Utils.getInstance().setEncFieldSet(true);
+                    Utils.getInstance().setEnc(true);
                     item.setIcon(R.drawable.ic_no_encryption_black_24dp);
                     item.setTitle("Disable encryption");
-
                     try {
-
-
-                        encryptAll(n);
+                        //encryptAll(n);w
                         Toast.makeText(getApplicationContext(), "Encryption enabled", Toast.LENGTH_SHORT).show();
-
-
-                    } catch (Exception ignore) {
-
-                    }
-
+                    } catch (Exception ignore) {}
                 }
+
             }
 
 
@@ -153,39 +129,45 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (action.equals("check"))
-                    finish();
                 dialog.cancel();
+
+            }
+        });
+
+        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+
             }
         });
 
         builder.show();
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         super.onActivityResult(requestCode, resultCode, data);
-        AppDatabase database = Room.databaseBuilder(this, AppDatabase.class, "db-contacts")
-                .allowMainThreadQueries()   //Allows room to do operation on main thread
-                .build();
-        NoteDao n = database.getNoteDao();
-        if (requestCode == 0) {
-            r.getNotesList().getRecycledViewPool().clear();
+
+        NoteDao n = Utils.getInstance().getNoteQuerryInterfce(this,null);
+        if (requestCode == 0) {//edit
+            recycleView.getNotesList().getRecycledViewPool().clear();
             if (data.getIntExtra("pos", -2) == -2)
                 return;
             if (data.getIntExtra("pos", -2) == -1) {
-                r.getNotesList().smoothScrollToPosition(0);
+                recycleView.getNotesList().smoothScrollToPosition(0);
                 adapter.notifyItemInserted(0);
 
                 n.search("%" + searchView.getQuery().toString() + "%");
             } else {
                 adapter.notifyItemChanged(data.getIntExtra("pos", -2));
             }
+
         }
         if (requestCode == 1) {
             if (data.getIntExtra("code", -2) == 1) {
-                r.getNotesList().setVisibility(View.VISIBLE);
+                recycleView.getNotesList().setVisibility(View.VISIBLE);
                 findViewById(R.id.addBtn).setVisibility(View.VISIBLE);
                 findViewById(R.id.imageView).setVisibility(View.INVISIBLE);
                 findViewById(R.id.textView3).setVisibility(View.INVISIBLE);
@@ -203,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
             }
             if (data.getIntExtra("code", -2) == 0) {
                 SharedPreferences prefs = this.getSharedPreferences(
-                        "com.example.victor.notes", Context.MODE_PRIVATE);
+                        "marius.stana.note.encrypt2", Context.MODE_PRIVATE);
                 prefs.edit().putBoolean("finger", true).apply();
                 fg.setTitle("Disable encryption");
                 Toast.makeText(getApplicationContext(), "Fingerprint enabled", Toast.LENGTH_SHORT).show();
@@ -213,6 +195,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
                 Toast.makeText(getApplicationContext(), "Fingerprint not enabled", Toast.LENGTH_SHORT).show();
             }
         }
+        //Qr ?
         if (requestCode == 2) {
             if (resultCode == 2)
                 return;
@@ -240,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
                     JSONObject jsonNote = notesArr.getJSONObject(i);
                     n.increasePositions(-1);
                     n.insert(new Note(jsonNote.getString("title"), jsonNote.getString("body"), 0));
-                    r.notesList.getRecycledViewPool().clear();
+                    recycleView.notesList.getRecycledViewPool().clear();
                     adapter.notifyDataSetChanged();
                     Toast.makeText(this, "Successfully imported", Toast.LENGTH_SHORT).show();
 
@@ -252,11 +235,11 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
-        AppDatabase database = Room.databaseBuilder(this, AppDatabase.class, "db-contacts")
-                .allowMainThreadQueries()
-                .build();
-        NoteDao n = database.getNoteDao();
+
+        NoteDao n =Utils.getInstance().getNoteQuerryInterfce(this,null);
+
         System.out.println(item.getItemId());
+        //send to device
         if (item.getItemId() == R.id.action_send) {
             List<Note> notesList = new ArrayList<>();
             if (Utils.getInstance().isEnc()) {
@@ -271,27 +254,37 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
             intent.putExtra("N", notes);
             startActivity(intent);
         }
+
         if (item.getItemId() == R.id.action_receive) {
             Intent intent = new Intent(MainActivity.this, ReceiveActivity.class);
             startActivityForResult(intent, 2);
 
         }
         if (item.getItemId() == R.id.action_toggle_encryption) {
-            if (!Utils.getInstance().isEnc()) {
-                getPassword("Please set the new encryption password", item, "enc");
+            if (Utils.getInstance().isEnc()==false) {
+
+                if(!Utils.getInstance().isEncFieldSet())
+                    getPassword("Please set the new encryption password", item, "enc",null);
+                else
+                    getPassword("Enter encryption password", item, "check_menu",null);
+
+                recycleView.notesList.getRecycledViewPool().clear();
+                adapter.notifyDataSetChanged();
             }
             if (Utils.getInstance().isEnc()) {
                 item.setIcon(R.drawable.ic_enhanced_encryption_black_24dp);
                 item.setTitle("Enable encryption");
-
-                decryptAll(n);
+                Utils.getInstance().setEnc(false);
+                recycleView.notesList.getRecycledViewPool().clear();
+                adapter.notifyDataSetChanged();
                 Toast.makeText(this, "Encryption disabled", Toast.LENGTH_SHORT).show();
 
 
             }
         }
+
         if (item.getItemId() == R.id.action_toggle_fingerprint) {
-            if (!checkFinger()) {
+            if (!BiometricUtils.checkFinger(this)) {
                 final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage("Your device does not have a fingerprint sensor.")
                         .setCancelable(true)
@@ -314,7 +307,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
 
                 } else {
                     SharedPreferences prefs = this.getSharedPreferences(
-                            "com.example.victor.notes", Context.MODE_PRIVATE);
+                            "marius.stana.note.encrypt2", Context.MODE_PRIVATE);
                     prefs.edit().putBoolean("finger", false).apply();
                     Toast.makeText(getApplicationContext(), "Fingerprint disabled", Toast.LENGTH_SHORT).show();
                     item.setTitle("Enable fingerprint");
@@ -337,7 +330,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
 
         item = menu.findItem(R.id.action_toggle_fingerprint);
         SharedPreferences prefs = this.getSharedPreferences(
-                "com.example.victor.notes", Context.MODE_PRIVATE);
+                "marius.stana.note.encrypt2", Context.MODE_PRIVATE);
         if (prefs.getBoolean("finger", false))
             item.setTitle("Disable fingerprint");
         if (findViewById(R.id.notesList).getVisibility() == View.INVISIBLE) {
@@ -401,6 +394,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
         }
     }
 
+    /*
     private boolean checkFinger() {
         // Keyguard Manager
         KeyguardManager keyguardManager = (KeyguardManager)
@@ -430,7 +424,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
         }
         return true;
     }
-
+*/
     //confiugres activity layout
     private void configureLayout() {
         //sets the use pin button when fingerprint is enabled
@@ -443,9 +437,10 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
                 startActivityForResult(add, 1);
             }
         });
-        //
-        r = new ConfigureRecycler(this);
-        adapter = r.getAdapter();
+
+        recycleView= new ConfigureRecycler(this);//populates recycle
+
+        adapter = recycleView.getAdapter();
         FloatingActionButton addBtn = findViewById(R.id.addBtn);
         //prevents doubletouch
         addBtn.setOnClickListener(new View.OnClickListener() {
@@ -461,55 +456,80 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
 
             }
         });
-        SharedPreferences prefs = this.getSharedPreferences(
-                "com.example.victor.notes", Context.MODE_PRIVATE);
+        SharedPreferences prefs = Utils.getInstance().getSharedPrefs(this);
         if (prefs.getBoolean("finger", false)) {
-            final FingerprintHandler fph = new FingerprintHandler(this, (TextView) findViewById(R.id.textView3), (ImageView) findViewById(R.id.imageView), r.notesList);
+            final FingerprintHandler fph = new FingerprintHandler(this, (TextView) findViewById(R.id.textView3), (ImageView) findViewById(R.id.imageView), recycleView.notesList);
             // We are ready to set up the cipher and the key
             try {
                 generateKey();
                 Cipher cipher = generateCipher();
-                FingerprintManager.CryptoObject cryptoObject =
-                        new FingerprintManager.CryptoObject(Objects.requireNonNull(cipher));
-                fph.doAuth((FingerprintManager)
-                        getSystemService(FINGERPRINT_SERVICE), cryptoObject);
+                FingerprintManagerCompat.CryptoObject cryptoObject =
+                        new FingerprintManagerCompat.CryptoObject(Objects.requireNonNull(cipher));
+                fph.doAuth(BiometricUtils.getFingerprintManagerCompat(this), cryptoObject);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d("MainActivity:onCreate","Intitialised");
-        AppDatabase database = Room.databaseBuilder(this, AppDatabase.class, "db-contacts")
-                .allowMainThreadQueries()
-                .build();
+        NoteDao noteQuerryInterface = Utils.getInstance().getNoteQuerryInterfce(this,null  );
+        //String notes = new Gson().toJson(n.getNotes());
+
+        noteQuerryInterface.showAll();
+        SharedPreferences prefs = this.getSharedPreferences(
+                "marius.stana.note.encrypt2", Context.MODE_PRIVATE);
 
 
-        NoteDao n = database.getNoteDao();
-        String notes = new Gson().toJson(n.getNotes());
-        Log.d("MainActivity:onCreate","get notes from noteDao");
-        n.showAll();
+       if(prefs.getBoolean("passSet",false)){
+            if (noteQuerryInterface.getFromPosition(-1).getTitle().equals("enc"))
+            Utils.getInstance().setEncFieldSet(true);
 
-        try {
-            if (n.getFromPosition(-1).getTitle().equals("enc")) {
-                Utils.getInstance().setEnc(true);
-                getPassword(getString(R.string.pass_solicitation), null, "check");
-            }
-        } catch (Exception ignore) {
-            Utils.getInstance().setEnc(false);
+        } else
+        {
+            Utils.getInstance().setEncFieldSet(false);
+        }
+       if(savedInstanceState != null)
+            Utils.getInstance().setEnc((savedInstanceState.getBoolean("Enc") || prefs.getBoolean("Enc",false)) && Utils.getInstance().getPasswd() !=null);
+       else{
+
+           Utils.getInstance().setEnc( prefs.getBoolean("Enc",false)  && Utils.getInstance().getPasswd() !=null);
+       }
             configureLayout();
 
-        }
-
-        //   startActivity(intent);
 
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        SharedPreferences prefs = this.getSharedPreferences(
+                "marius.stana.note.encrypt2", Context.MODE_PRIVATE);
+        SharedPreferences.Editor preferencesEditor = prefs.edit();
+        preferencesEditor.putBoolean("passSet", Utils.getInstance().isEncFieldSet());
+        preferencesEditor.putBoolean("Enc", Utils.getInstance().isEnc());
+        preferencesEditor.apply();
+    }
+
+    @Override
+    protected void onDestroy() {
+
+        super.onDestroy();
+        SharedPreferences prefs = this.getSharedPreferences(
+                "marius.stana.note.encrypt2", Context.MODE_PRIVATE);
+        SharedPreferences.Editor preferencesEditor = prefs.edit();
+        preferencesEditor.remove("Enc");
+        preferencesEditor.apply();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putBoolean("Enc",Utils.getInstance().isEnc());
+    }
 
     @Override
     public void onItemClick(int position) {
@@ -517,10 +537,21 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
             return;
         }
         mLastClickTime = SystemClock.elapsedRealtime();
-        Intent add = new Intent(MainActivity.this, AddNote.class);
-        add.putExtra("position", String.valueOf(position)); //open for add
 
-        startActivityForResult(add, 0);
+        if (Utils.getInstance().getNoteQuerryInterfce(this, null).getFromPosition(position).isEncrypted()) {
+            if (Utils.getInstance().isEnc() == false)
+                getPassword(getString(R.string.pass_solicitation), null, "check_edit", position);
+            else{
+                Intent add = new Intent(MainActivity.this, AddNote.class);
+                add.putExtra("position", String.valueOf(position)); //open for add ?
+                startActivityForResult(add, 0);
+            }
+        } else{
+
+            Intent add = new Intent(MainActivity.this, AddNote.class);
+             add.putExtra("position", String.valueOf(position)); //open for add ?
+             startActivityForResult(add, 0);
+      }
         // Toast.makeText(this, "You clicked " + adapter.getItem(position) + " on row number " + position, Toast.LENGTH_SHORT).show();
 
     }
@@ -536,15 +567,17 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
             keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES,
                     "AndroidKeyStore");
             keyStore.load(null);
-            keyGenerator.init(new
-                    KeyGenParameterSpec.Builder("a",
-                    KeyProperties.PURPOSE_ENCRYPT |
-                            KeyProperties.PURPOSE_DECRYPT)
-                    .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                    .setUserAuthenticationRequired(true)
-                    .setEncryptionPaddings(
-                            KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                    .build());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                keyGenerator.init(new
+                        KeyGenParameterSpec.Builder("a",
+                        KeyProperties.PURPOSE_ENCRYPT |
+                                KeyProperties.PURPOSE_DECRYPT)
+                        .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+                        .setUserAuthenticationRequired(true)
+                        .setEncryptionPaddings(
+                                KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                        .build());
+            }
             keyGenerator.generateKey();
         } catch (Exception exc) {
             exc.printStackTrace();
@@ -566,6 +599,11 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
         }
 
     }
+
+    //Utils
+
+
+
 
 }
 
