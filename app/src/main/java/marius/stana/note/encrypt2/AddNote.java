@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -134,10 +135,10 @@ public class AddNote extends AppCompatActivity {
             }
         });
 
-        configureImageView();
+        configureImageView(draftNote);
     }
 
-    private void configureImageView() {
+    private void configureImageView(Note draftNote) {
 
         image = findViewById(R.id.addPhoto);
         image.setOnClickListener(new View.OnClickListener() {
@@ -147,7 +148,12 @@ public class AddNote extends AppCompatActivity {
 
             }
         });
+       if(draftNote.getFile()!=null ){
+            Bitmap imageBitmap = BitmapFactory.decodeFile(draftNote.getFile());
+                    image.setImageBitmap(imageBitmap);
 
+           currentPhotoPath=draftNote.getFile();
+        }
     }
 
 
@@ -209,7 +215,7 @@ public class AddNote extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (reason == false && TextUtils.isEmpty(titleEdit.getText()) && TextUtils.isEmpty(bodyEdit.getText().toString())) {
+        if (reason == false && TextUtils.isEmpty(titleEdit.getText()) && TextUtils.isEmpty(bodyEdit.getText().toString()) && currentPhotoPath.isEmpty()) {
             // If empty  discards it.
             noteQueryInterface.delete(noteQueryInterface.getFromPosition(position));
             noteQueryInterface.decreasePositions(position);
@@ -217,7 +223,7 @@ public class AddNote extends AppCompatActivity {
             intent.putExtra("pos", -2);
             setResult(0, intent);
             finish();
-        } else if (TextUtils.isEmpty(titleEdit.getText()) && TextUtils.isEmpty(bodyEdit.getText().toString())) {
+        } else if (TextUtils.isEmpty(titleEdit.getText()) && TextUtils.isEmpty(bodyEdit.getText().toString()) && (currentPhotoPath.isEmpty() || currentPhotoPath.equals(noteQueryInterface.getFromPosition(position).getFile()))) {
             // if fields are put to empty by user than discard Note
             DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
                 @Override
@@ -341,7 +347,12 @@ public class AddNote extends AppCompatActivity {
 
             File imgFile = new  File(currentPhotoPath);
             if(imgFile.exists())            {
-                image.setImageURI(Uri.fromFile(imgFile));
+                Bundle extras = data.getExtras();
+                Bitmap imageBitmap = (Bitmap) extras.get("data");
+                image.setImageBitmap(imageBitmap);
+        Note note = noteQueryInterface.getFromPosition(position);
+        note.setFile(currentPhotoPath);
+
             }
             /*
             Bundle extras = data.getExtras();
