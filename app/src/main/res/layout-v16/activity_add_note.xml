@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/lay1"
@@ -8,87 +8,160 @@
     android:orientation="vertical"
     tools:context=".AddNote">
 
-    <EditText
-        android:id="@+id/editTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:autofillHints="Enter Note "
-        android:background="#4ACFE4"
-        android:ems="10"
-        android:fontFamily="casual"
-        android:hint="@string/add_title"
-        android:inputType="text"
-        android:padding="20dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-        android:textSize="17sp"
-        android:textStyle="bold" />
 
-    <View
-        android:id="@+id/view1"
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:background="@android:color/darker_gray" />
 
     <LinearLayout
-        android:id="@+id/lay2"
+        android:id="@+id/addlinearLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
 
         <EditText
-            android:id="@+id/editBody"
+            android:id="@+id/editTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="0dp"
-            android:layout_marginBottom="51dp"
-            android:autofillHints="Enter text here"
-
-            android:background="@null"
+            android:autofillHints="Enter Note "
+            android:background="#C2D7DB"
             android:ems="10"
             android:fontFamily="casual"
-            android:gravity="top"
-            android:hint="@string/add_note"
-            android:inputType="textMultiLine"
+            android:hint="@string/add_title"
+            android:inputType="text"
             android:padding="20dp"
             android:textAppearance="@style/TextAppearance.AppCompat.Body2"
             android:textSize="17sp"
             android:textStyle="bold" />
 
         <View
-            android:id="@+id/view2"
-            android:layout_width="match_parent"
-            android:layout_height="3dp"
-            android:background="@android:color/darker_gray" />
-
-        <LinearLayout
-            android:id="@+id/actionButtens"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="bottom|right"
-            android:orientation="horizontal">
-
-            <ImageButton
-                android:id="@+id/addDiscard"
-                android:layout_width="72dp"
-                android:layout_height="match_parent"
-                app:srcCompat="@android:drawable/ic_delete" />
-
-            <ImageButton
-                android:id="@+id/addConfirm"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                app:srcCompat="@android:drawable/ic_input_add" />
-
-            <ImageView
-                android:id="@+id/addPhoto"
-                android:layout_width="72dp"
-                android:layout_height="match_parent"
-                app:srcCompat="@android:drawable/ic_menu_camera" />
-
-        </LinearLayout>
-
-
+        android:id="@+id/view1"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:background="@android:color/darker_gray" />
     </LinearLayout>
 
-</LinearLayout>
+
+    <EditText
+        android:id="@+id/editBody"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="67dp"
+        android:layout_marginBottom="51dp"
+        android:autofillHints="Enter text here"
+
+        android:background="@null"
+        android:ems="10"
+        android:fontFamily="casual"
+        android:gravity="top"
+        android:hint="@string/add_note"
+        android:inputType="textMultiLine"
+        android:padding="20dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+        android:textSize="17sp"
+        android:textStyle="bold" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/addPhoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="15dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:backgroundTint="#55CC1F"
+        app:layout_anchor="@+id/editBody"
+        app:layout_anchorGravity="bottom|center"
+        app:srcCompat="@android:drawable/ic_menu_camera" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/addDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="15dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:backgroundTint="#C42C2C"
+        app:layout_anchor="@+id/editBody"
+        app:layout_anchorGravity="start|bottom"
+        app:srcCompat="@android:drawable/ic_delete" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/addDiscard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginRight="70dp"
+        android:layout_marginBottom="15dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:backgroundTint="#E45C5C"
+        app:layout_anchor="@+id/editBody"
+        app:layout_anchorGravity="end|center"
+        app:srcCompat="@android:drawable/ic_menu_revert" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/addConfirm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="15dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:backgroundTint="#55CC1F"
+        app:layout_anchor="@+id/editBody"
+        app:layout_anchorGravity="end|bottom"
+        app:srcCompat="@drawable/ic_add_black_24dp" />
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/photoDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="15dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:backgroundTint="#E45C5C"
+        app:layout_anchor="@+id/editBody"
+        app:layout_anchorGravity="end|top"
+        app:srcCompat="@android:drawable/ic_menu_camera" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/viewPhoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="15dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:backgroundTint="#55CC1F"
+        app:layout_anchor="@+id/editBody"
+        app:layout_anchorGravity="top|center"
+        app:srcCompat="@android:drawable/ic_menu_camera" />
+
+</android.support.design.widget.CoordinatorLayout>

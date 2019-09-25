@@ -36,6 +36,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
     private List<Note> filteredList;
     private Activity activity;
 
+
     CustomAdapter(RecyclerView rView, CoordinatorLayout snackLay, Context context, NoteDao data) {
         this.mInflater = LayoutInflater.from(context);
         this.notes = data;
@@ -57,7 +58,6 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Note currentNote = notes.getFromPosition(position);
         if (!currentNote.isHidden()) {
-            Log.d("CA:onBindViewHolder","Position is "+position );
             holder.titleTextView.setVisibility(View.VISIBLE);
             holder.bodyTextView.setVisibility(View.VISIBLE);
             holder.line.setVisibility(View.VISIBLE);
@@ -110,13 +110,15 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
 
     @Override
     public Filter getFilter() {
+
+
         return new Filter() {
             @Override
             protected FilterResults performFiltering(CharSequence charSequence) {
                 String charString = charSequence.toString();
 
                 notes.showAll();
-
+System.out.println( charString);
             if(charString.isEmpty() == false)
                 for(int i=0;i<notes.getNotes().size();i++) {
                         if( notes.getFromPosition(i).isEncrypted() && Utils.getInstance().isEnc())

@@ -25,6 +25,10 @@ public class Note {
     private boolean hidden = false;
     private String file;
 
+
+    @PrimaryKey(autoGenerate = true)
+    private int key;
+
     //Encrypts note with AES
     public Note encrypt() {
         if (this.isEncrypted== true) {
@@ -43,6 +47,7 @@ public class Note {
                 return new Note("", "", 0);
             }
         }
+        System.out.println("Failed to encrypt+ "+this.isEncrypted);
         return this;
     }
 
@@ -87,9 +92,6 @@ public class Note {
         this.key = key;
     }
 
-    @PrimaryKey(autoGenerate = true)
-    private int key;
-
 
     Note(@NonNull String title, String body, int position) {
         this.title = title;
@@ -98,7 +100,36 @@ public class Note {
 
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Note)
+            return false;
+        if(title.equals(((Note) obj).getTitle()))
+            return false;
+        if (body.equals(((Note) obj).getBody()))
+            return false;
+        if(position == ((Note) obj).getPosition())
+            return false;
+        if(file != null && ((Note) obj).getFile() != null)
+            return false;
+        if(file.equals(((Note) obj).getFile()))
+            return false;
+        return true;
 
+    }
+
+    public void fillNoteFromNote(Note org){
+
+        this.setTitle(org.getTitle());
+        this.setBody(org.getBody());
+        this.setEncrypted(org.isEncrypted());
+        this.setHidden(org.isHidden());
+        this.setFile(org.getFile());
+        this.setPosition(org.getPosition());
+        this.setTimeStamp(org.getTimeStamp());
+        this.setKey(org.getKey());
+        org=null;
+    }
 
     public int getPosition() {
         return position;

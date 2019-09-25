@@ -1,9 +1,13 @@
 package marius.stana.note.encrypt2;
 
+import android.Manifest;
 import android.app.Activity;
 import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
@@ -26,6 +30,10 @@ import java.util.Calendar;
 import java.util.Date;
 
 class Utils {
+
+    static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int MY_CAMERA_REQUEST_CODE = 100;
+
     private boolean enc;
     private boolean isEncFieldSet;
     private static final Utils ourInstance = new Utils();
@@ -182,6 +190,29 @@ class Utils {
     public SharedPreferences getSharedPrefs(Context activity){
         return  activity.getSharedPreferences(
                 "marius.stana.note.encrypt2", Context.MODE_PRIVATE);
+    }
+
+    public SharedPreferences.Editor getSharedPrefsEditor(Context activity){
+        return  activity.getSharedPreferences(
+                "marius.stana.note.encrypt2", Context.MODE_PRIVATE).edit();
+    }
+
+    public void getCameraPermission(Activity app){
+        if (ContextCompat.checkSelfPermission(app, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission is not granted
+        }
+        else {
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (app.checkSelfPermission(Manifest.permission.CAMERA)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    app.requestPermissions(new String[]{Manifest.permission.CAMERA},
+                            MY_CAMERA_REQUEST_CODE);
+                }
+            }
+
+        }
     }
 
 }

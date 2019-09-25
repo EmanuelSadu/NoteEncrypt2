@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.hardware.fingerprint.FingerprintManager;
 import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import android.os.Build;
@@ -151,18 +152,28 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
         super.onActivityResult(requestCode, resultCode, data);
 
         NoteDao n = Utils.getInstance().getNoteQuerryInterfce(this,null);
-        if (requestCode == 0) {//edit
+
+
+        if(data.getIntExtra("deleted",-1)>=0){
+            adapter.notifyItemRemoved(data.getIntExtra("deleted",0));
             recycleView.getNotesList().getRecycledViewPool().clear();
-            if (data.getIntExtra("pos", -2) == -2)
+            return;
+        }
+        if (requestCode == 0) {//edit/add/deleted
+            recycleView.getNotesList().getRecycledViewPool().clear();
+            if (data.getIntExtra("pos", -2) == -2)//do not add note
                 return;
-            if (data.getIntExtra("pos", -2) == -1) {
+            if (data.getIntExtra("pos", -2) == -1)//item added
+            {
                 recycleView.getNotesList().smoothScrollToPosition(0);
                 adapter.notifyItemInserted(0);
 
                 n.search("%" + searchView.getQuery().toString() + "%");
             } else {
+                System.out.print("Here");
                 adapter.notifyItemChanged(data.getIntExtra("pos", -2));
             }
+
 
         }
         if (requestCode == 1) {
@@ -329,8 +340,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
         }
 
         item = menu.findItem(R.id.action_toggle_fingerprint);
-        SharedPreferences prefs = this.getSharedPreferences(
-                "marius.stana.note.encrypt2", Context.MODE_PRIVATE);
+        SharedPreferences prefs = Utils.getInstance().getSharedPrefs(this);
         if (prefs.getBoolean("finger", false))
             item.setTitle("Disable fingerprint");
         if (findViewById(R.id.notesList).getVisibility() == View.INVISIBLE) {
@@ -394,37 +404,6 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
         }
     }
 
-    /*
-    private boolean checkFinger() {
-        // Keyguard Manager
-        KeyguardManager keyguardManager = (KeyguardManager)
-                getSystemService(KEYGUARD_SERVICE);
-        // Fingerprint Manager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            fingerprintManager = (FingerprintManager)
-                    getSystemService(FINGERPRINT_SERVICE);
-
-            try {
-                // Check if the fingerprint sensor is present
-                if (!fingerprintManager.isHardwareDetected()) {
-                    // Update the UI with a message
-                    return false;
-                }
-                if (!fingerprintManager.hasEnrolledFingerprints()) {
-                    return false;
-                }
-                if (!keyguardManager.isKeyguardSecure()) {
-                    return false;
-                }
-            } catch (SecurityException se) {
-                se.printStackTrace();
-            }
-        } else {
-            return false;
-        }
-        return true;
-    }
-*/
     //confiugres activity layout
     private void configureLayout() {
         //sets the use pin button when fingerprint is enabled
@@ -470,6 +449,10 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
                 e.printStackTrace();
             }
         }
+            SharedPreferences.Editor preferencesEditor = prefs.edit();
+        preferencesEditor.putBoolean("screenFlip", false);
+            preferencesEditor.apply();
+
     }
 
     @Override
@@ -480,9 +463,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
         //String notes = new Gson().toJson(n.getNotes());
 
         noteQuerryInterface.showAll();
-        SharedPreferences prefs = this.getSharedPreferences(
-                "marius.stana.note.encrypt2", Context.MODE_PRIVATE);
-
+        SharedPreferences prefs = Utils.getInstance().getSharedPrefs(this);
 
        if(prefs.getBoolean("passSet",false)){
             if (noteQuerryInterface.getFromPosition(-1).getTitle().equals("enc"))
@@ -506,9 +487,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
     @Override
     protected void onPause() {
         super.onPause();
-        SharedPreferences prefs = this.getSharedPreferences(
-                "marius.stana.note.encrypt2", Context.MODE_PRIVATE);
-        SharedPreferences.Editor preferencesEditor = prefs.edit();
+        SharedPreferences.Editor preferencesEditor = Utils.getInstance().getSharedPrefsEditor(this);
         preferencesEditor.putBoolean("passSet", Utils.getInstance().isEncFieldSet());
         preferencesEditor.putBoolean("Enc", Utils.getInstance().isEnc());
         preferencesEditor.apply();
@@ -518,9 +497,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
     protected void onDestroy() {
 
         super.onDestroy();
-        SharedPreferences prefs = this.getSharedPreferences(
-                "marius.stana.note.encrypt2", Context.MODE_PRIVATE);
-        SharedPreferences.Editor preferencesEditor = prefs.edit();
+        SharedPreferences.Editor preferencesEditor = Utils.getInstance().getSharedPrefsEditor(this);
         preferencesEditor.remove("Enc");
         preferencesEditor.apply();
     }
@@ -529,6 +506,17 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putBoolean("Enc",Utils.getInstance().isEnc());
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        SharedPreferences.Editor preferencesEditor = Utils.getInstance().getSharedPrefsEditor(this);
+        if(newConfig.orientation==Configuration.ORIENTATION_LANDSCAPE || newConfig.orientation==Configuration.ORIENTATION_PORTRAIT ) {
+            Log.d("Orientation","Changed");
+            preferencesEditor.putBoolean("screenFlip", true);
+        }
+        preferencesEditor.apply();
     }
 
     @Override
@@ -555,6 +543,8 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
         // Toast.makeText(this, "You clicked " + adapter.getItem(position) + " on row number " + position, Toast.LENGTH_SHORT).show();
 
     }
+
+    //Utils
 
     KeyStore keyStore;
     KeyGenerator keyGenerator;
@@ -599,10 +589,6 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
         }
 
     }
-
-    //Utils
-
-
 
 
 }

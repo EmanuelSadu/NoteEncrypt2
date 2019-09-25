@@ -9,6 +9,7 @@
         android:title="Switch"
         android:titleCondensed="Encrypted/Decrypted"
         android:tooltipText="Enrypt"
+        android:checkable="true"
         app:actionLayout="@layout/switch_item"
         app:showAsAction="always" />
     <item
