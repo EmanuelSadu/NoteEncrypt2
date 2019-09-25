@@ -56,7 +56,6 @@ public class AddNote extends AppCompatActivity {
 
 
     private void configureLayout() {
-        Objects.requireNonNull(getSupportActionBar()).setHomeAsUpIndicator(R.mipmap.ic_back);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         position = Integer.parseInt(getIntent().getStringExtra("position"));
 

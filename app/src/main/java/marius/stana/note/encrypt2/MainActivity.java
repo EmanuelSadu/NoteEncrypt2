@@ -350,6 +350,11 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
             menu.findItem(R.id.action_toggle_encryption).setVisible(true);
             menu.findItem(R.id.action_toggle_fingerprint).setVisible(true);
         }
+
+
+        menu.findItem(R.id.action_send).setEnabled(false);
+        menu.findItem(R.id.action_receive).setEnabled(false);
+
         return true;
     }
 
