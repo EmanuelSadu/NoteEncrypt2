@@ -102,17 +102,19 @@ public class Note {
 
     @Override
     public boolean equals(Object obj) {
-        if(obj instanceof Note)
+        if(!(obj instanceof Note))
             return false;
-        if(title.equals(((Note) obj).getTitle()))
+        if(!title.equals(((Note) obj).getTitle()))
             return false;
-        if (body.equals(((Note) obj).getBody()))
+        if (!body.equals(((Note) obj).getBody()))
             return false;
-        if(position == ((Note) obj).getPosition())
+        if(position != ((Note) obj).getPosition())
             return false;
-        if(file != null && ((Note) obj).getFile() != null)
+        if(file != null && ((Note) obj).getFile() == null)
             return false;
-        if(file.equals(((Note) obj).getFile()))
+        if(file == null && ((Note) obj).getFile() != null)
+            return false;
+        else if(file != null && ((Note) obj).getFile() != null && !file.equals(((Note) obj).getFile()))
             return false;
         return true;
 

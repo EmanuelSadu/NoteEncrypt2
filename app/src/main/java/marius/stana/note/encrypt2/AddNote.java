@@ -286,7 +286,7 @@ public class AddNote extends AppCompatActivity {
                 }
             }
         });
-        if(Utils.getInstance().getPasswd() != null || reason == false)
+        if(Utils.getInstance().getPasswd() != null || reason != false)
             switchBar.setVisibility(View.VISIBLE);
         else
             switchBar.setVisibility(View.INVISIBLE);
@@ -388,6 +388,25 @@ public class AddNote extends AppCompatActivity {
         Utils.getInstance().getCameraPermission(this);
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == Utils.MY_CAMERA_REQUEST_CODE) {
+
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                Toast.makeText(this, "camera permission granted", Toast.LENGTH_LONG).show();
+
+            } else {
+
+                Toast.makeText(this, "camera permission denied", Toast.LENGTH_LONG).show();
+
+            }
+
+        }
+    }
 
     private File createImageFile() throws IOException {
         // Create an image file name
@@ -410,16 +429,6 @@ public class AddNote extends AppCompatActivity {
     private void dispatchTakePictureIntent() {
 
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.CAMERA)
-                    != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.CAMERA},
-                        Utils. MY_CAMERA_REQUEST_CODE);
-            }
-        }
-
-
-
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
@@ -440,42 +449,12 @@ public class AddNote extends AppCompatActivity {
                 startActivityForResult(takePictureIntent, Utils.REQUEST_IMAGE_CAPTURE);
             }
         }
-        /*
-          try {
-            createImageFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-       // takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, currentPhotoPath);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, Utils.REQUEST_IMAGE_CAPTURE);
-            */
-        }
-
-
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == Utils.MY_CAMERA_REQUEST_CODE) {
-
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                Toast.makeText(this, "camera permission granted", Toast.LENGTH_LONG).show();
-
-            } else {
-
-                Toast.makeText(this, "camera permission denied", Toast.LENGTH_LONG).show();
-
-            }
-
-        }
     }
+
+
+
+
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 

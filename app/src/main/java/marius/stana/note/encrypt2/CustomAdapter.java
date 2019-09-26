@@ -20,6 +20,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,7 +37,6 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
     private ItemClickListener mClickListener;
     private List<Note> filteredList;
     private Activity activity;
-
 
     CustomAdapter(RecyclerView rView, CoordinatorLayout snackLay, Context context, NoteDao data) {
         this.mInflater = LayoutInflater.from(context);
@@ -63,22 +64,22 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
             holder.line.setVisibility(View.VISIBLE);
             holder.titleTextView.setText(currentNote.getTitle());
             holder.bodyTextView.setText(currentNote.getTimeStamp());
-
+            holder.image.setVisibility(View.VISIBLE);
 
 
             if(currentNote.isEncrypted()) {
-
                 holder.bodyTextView.setTextColor(Color.RED);
-
-              //  holder.line.setBackgroundColor(R.color.colorEncrypted);
+                holder.image.setImageResource(R.drawable.ic_enhanced_encryption_black_24dp);
             }
             else{
                 holder.bodyTextView.setTextColor(Color.BLACK);
+                holder.image.setImageResource(R.drawable.ic_no_encryption_black_24dp);
             }
         } else {
             holder.titleTextView.setVisibility(View.GONE);
             holder.bodyTextView.setVisibility(View.GONE);
             holder.line.setVisibility(View.GONE);
+            holder.image.setVisibility(View.GONE);
         }
     }
 
@@ -87,7 +88,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
     public int getItemCount() {
             return notes.getNotes().size();
     }
-    //change order in sqlite when dragging items
+    //change order in Room when dragging items
     public void onItemMove(int fromPosition, int toPosition) {
         if (notes.getHidden().size()==0) {
             Note tmp = notes.getFromPosition(fromPosition);
@@ -118,26 +119,24 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
                 String charString = charSequence.toString();
 
                 notes.showAll();
-System.out.println( charString);
             if(charString.isEmpty() == false)
                 for(int i=0;i<notes.getNotes().size();i++) {
                         if( notes.getFromPosition(i).isEncrypted() && Utils.getInstance().isEnc())
                         {
                             if (!notes.getFromPosition(i).decrypt().getBody().contains(charString) || !notes.getFromPosition(i).getTitle().contains(charString));
-                                notes.setHidden(notes.getFromPosition(i).getPosition());
+                              continue;
                         }else
                             {
-                                if (!notes.getFromPosition(i).getTitle().contains(charString))
+                                if (notes.getFromPosition(i).getTitle().contains(charString))
                                 {
-                                    notes.setHidden(notes.getFromPosition(i).getPosition());
+                                    continue;
                                 }
-                                if (notes.getFromPosition(i).isEncrypted() ==false && !notes.getFromPosition(i).getBody().contains(charString))
+                                if (notes.getFromPosition(i).isEncrypted() ==false && notes.getFromPosition(i).getBody().contains(charString))
                                 {
-                                    notes.setHidden(notes.getFromPosition(i).getPosition());
+                                   continue;
                                 }
-
                         }
-
+                    notes.setHidden(notes.getFromPosition(i).getPosition());
                 }
             else
                 notes.showAll();;
@@ -165,12 +164,14 @@ System.out.println( charString);
         TextView titleTextView;
         TextView bodyTextView;
         View line;
+        ImageView image;
 
         ViewHolder(View itemView) {
             super(itemView);
             titleTextView = itemView.findViewById(R.id.textView);
             bodyTextView = itemView.findViewById(R.id.textView2);
             line = itemView.findViewById(R.id.line);
+            image= itemView.findViewById(R.id.image);
             itemView.setOnClickListener(this);
         }
 
@@ -178,8 +179,6 @@ System.out.println( charString);
         public void onClick(View view) {
             if (mClickListener != null) mClickListener.onItemClick(getAdapterPosition());
         }
-
-
     }
 
     // convenience method for getting data at click position
@@ -202,7 +201,6 @@ System.out.println( charString);
 
 
     public void checkPass(final String information, Note backup) {
-        Log.d("CA:checkPassDel","delete enc");
        Integer position = backup.getPosition();
         if(backup.isEncrypted()== true && Utils.getInstance().isEnc() == false) {
 
@@ -216,7 +214,6 @@ System.out.println( charString);
                 public void onClick(DialogInterface dialog, int which) {
                     //invalidateOptionsMenu();
                     String pass = input.getText().toString();
-                    //n= Utils.getInstance().getNoteQuerryInterfce(getApplicationContext(),null);
                     if (notes.getFromPosition(-1).getBody().equals(Utils.getInstance().hashBasedCheck(pass))) {
                         Utils.getInstance().setPasswd(pass);
                         deleteNote(backup,position);
@@ -268,7 +265,7 @@ System.out.println( charString);
                     }
                 });
 
-        snackbar.show();
+
         snackbar.show();
     }
 

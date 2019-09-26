@@ -36,9 +36,8 @@ public class ConfigureRecycler {
     }
 
     public void configureRecyclerView(AppCompatActivity activity) {
-        Log.d("CR:CfgRView","get recycleVIew and Populate");
-        notesList = activity.findViewById(R.id.notesList);
 
+        notesList = activity.findViewById(R.id.notesList);
         NoteDao noteQuerryInterface = Utils.getInstance().getNoteQuerryInterfce(activity,null  );
         try {
             if (noteQuerryInterface.getFromPosition(0).getTitle().equals("") && noteQuerryInterface.getFromPosition(0).getBody().equals("")) {

@@ -69,88 +69,11 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
     private MenuItem fg;
     SearchView searchView;
 
-    public void getPassword(final String information, final MenuItem item, final String action,Integer position) {
-
-        final EditText input = Utils.getInstance().getEditText(this);
-        final AlertDialog.Builder builder = Utils.getInstance().getAlertBox(this,information,input);
-
-        // Set up the buttons
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                invalidateOptionsMenu();
-                pass = input.getText().toString();
-                NoteDao n = Utils.getInstance().getNoteQuerryInterfce(getApplicationContext(),null);
-
-                if (action.equals("check_edit")) {
-                    if (n.getFromPosition(-1).getBody().equals(Utils.getInstance().hashBasedCheck(pass))) {
-                        Utils.getInstance().setPasswd(pass);
-                        Intent add = new Intent(MainActivity.this, AddNote.class);
-                        add.putExtra("position", String.valueOf(position)); //open for add ?
-                        startActivityForResult(add, 0);
-
-
-                    } else {
-                        getPassword("Wrong password, please try again", item, action,position);
-                        builder.setTitle("Wrong pass");
-                    }
-                }
-
-                if (action.equals("check_menu")) {
-                    if (n.getFromPosition(-1).getBody().equals(Utils.getInstance().hashBasedCheck(pass))) {
-                        Utils.getInstance().setPasswd(pass);
-                        Utils.getInstance().setEnc(true);
-
-                    } else {
-                        getPassword("Wrong password, please try again", item, action,position);
-                        builder.setTitle("Wrong pass");
-                    }
-                    item.setIcon(R.drawable.ic_no_encryption_black_24dp);
-                    item.setTitle("Disable encryption");
-                }
-
-                if (action.equals("enc")) {
-                    Utils.getInstance().setEnc(true);
-                    Utils.getInstance().setPasswd(pass);
-                    n.insert(new Note("enc", Utils.getInstance().hashBasedCheck(pass), -1));
-                    Utils.getInstance().setEncFieldSet(true);
-                    Utils.getInstance().setEnc(true);
-                    item.setIcon(R.drawable.ic_no_encryption_black_24dp);
-                    item.setTitle("Disable encryption");
-                    try {
-                        //encryptAll(n);w
-                        Toast.makeText(getApplicationContext(), "Encryption enabled", Toast.LENGTH_SHORT).show();
-                    } catch (Exception ignore) {}
-                }
-
-            }
-
-
-        });
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-
-            }
-        });
-
-        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-
-            }
-        });
-
-        builder.show();
-    }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         super.onActivityResult(requestCode, resultCode, data);
-
         NoteDao n = Utils.getInstance().getNoteQuerryInterfce(this,null);
 
 
@@ -206,78 +129,20 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
                 Toast.makeText(getApplicationContext(), "Fingerprint not enabled", Toast.LENGTH_SHORT).show();
             }
         }
-        //Qr ?
-        if (requestCode == 2) {
-            if (resultCode == 2)
-                return;
-            if (resultCode == 1) {
-                final android.app.AlertDialog alertDialog = new android.app.AlertDialog.Builder(MainActivity.this).create();
-                alertDialog.setTitle("Error");
-                alertDialog.setMessage("Wrong QR code. Please try again");
-                alertDialog.setButton(android.app.AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-                alertDialog.show();
-            }
 
-            String notes = data.getStringExtra("notes");
-            String pwd = data.getStringExtra("pwd");
-            IvParameterSpec iv = new IvParameterSpec(Utils.getInstance().hashBasedCheck(String.valueOf("a"))
-                    .substring(48)
-                    .getBytes(StandardCharsets.UTF_8));
-            notes = Utils.getInstance().decrypt(iv, notes, pwd);
-            try {
-                JSONArray notesArr = new JSONArray(notes);
-                for (int i = 0; i < notesArr.length(); i++) {
-                    JSONObject jsonNote = notesArr.getJSONObject(i);
-                    n.increasePositions(-1);
-                    n.insert(new Note(jsonNote.getString("title"), jsonNote.getString("body"), 0));
-                    recycleView.notesList.getRecycledViewPool().clear();
-                    adapter.notifyDataSetChanged();
-                    Toast.makeText(this, "Successfully imported", Toast.LENGTH_SHORT).show();
-
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
 
         NoteDao n =Utils.getInstance().getNoteQuerryInterfce(this,null);
 
-        System.out.println(item.getItemId());
-        //send to device
-        if (item.getItemId() == R.id.action_send) {
-            List<Note> notesList = new ArrayList<>();
-            if (Utils.getInstance().isEnc()) {
-                for (int i = 0; i < n.getNotes().size() - 1; i++) {
-                    notesList.add(n.getFromPosition(i).decrypt());
-                }
-            } else {
-                notesList = n.getNotes();
-            }
-            String notes = new Gson().toJson(notesList);
-            Intent intent = new Intent(MainActivity.this, QRActivity.class);
-            intent.putExtra("N", notes);
-            startActivity(intent);
-        }
-
-        if (item.getItemId() == R.id.action_receive) {
-            Intent intent = new Intent(MainActivity.this, ReceiveActivity.class);
-            startActivityForResult(intent, 2);
-
-        }
         if (item.getItemId() == R.id.action_toggle_encryption) {
             if (Utils.getInstance().isEnc()==false) {
 
                 if(!Utils.getInstance().isEncFieldSet())
-                    getPassword("Please set the new encryption password", item, "enc",null);
+                   Utils.getInstance(). getPassword(this,"Please set the new encryption password", item, "enc",null);
                 else
-                    getPassword("Enter encryption password", item, "check_menu",null);
+                    Utils.getInstance(). getPassword(this,"Enter encryption password", item, "check_menu",null);
 
                 recycleView.notesList.getRecycledViewPool().clear();
                 adapter.notifyDataSetChanged();
@@ -293,7 +158,6 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
 
             }
         }
-
         if (item.getItemId() == R.id.action_toggle_fingerprint) {
             if (!BiometricUtils.checkFinger(this)) {
                 final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -327,6 +191,9 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
             }
 
         }
+
+
+
         return true;
 
     }
@@ -351,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
             menu.findItem(R.id.action_toggle_fingerprint).setVisible(true);
         }
 
-
+        //TO-DO
         menu.findItem(R.id.action_send).setEnabled(false);
         menu.findItem(R.id.action_receive).setEnabled(false);
 
@@ -422,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
             }
         });
 
-        recycleView= new ConfigureRecycler(this);//populates recycle
+        recycleView= new ConfigureRecycler(this);
 
         adapter = recycleView.getAdapter();
         FloatingActionButton addBtn = findViewById(R.id.addBtn);
@@ -455,7 +322,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
             }
         }
             SharedPreferences.Editor preferencesEditor = prefs.edit();
-        preferencesEditor.putBoolean("screenFlip", false);
+            preferencesEditor.putBoolean("screenFlip", false);
             preferencesEditor.apply();
 
     }
@@ -533,7 +400,7 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
 
         if (Utils.getInstance().getNoteQuerryInterfce(this, null).getFromPosition(position).isEncrypted()) {
             if (Utils.getInstance().isEnc() == false)
-                getPassword(getString(R.string.pass_solicitation), null, "check_edit", position);
+               Utils.getInstance().getPassword(this,getString(R.string.pass_solicitation), null, "check_edit", position);
             else{
                 Intent add = new Intent(MainActivity.this, AddNote.class);
                 add.putExtra("position", String.valueOf(position)); //open for add ?
@@ -546,7 +413,6 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
              startActivityForResult(add, 0);
       }
         // Toast.makeText(this, "You clicked " + adapter.getItem(position) + " on row number " + position, Toast.LENGTH_SHORT).show();
-
     }
 
     //Utils

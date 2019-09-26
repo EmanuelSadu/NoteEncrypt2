@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.arch.persistence.room.Room;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -12,7 +14,9 @@ import android.support.v7.app.AlertDialog;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Base64;
+import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -137,11 +141,6 @@ class Utils {
         return ourInstance;
     }
 
-    private Utils() {
-
-    }
-
-
     public NoteDao getNoteQuerryInterfce(Context activity,String db){
         if(db == null)
             db = "db-contacts2";
@@ -153,9 +152,8 @@ class Utils {
 
     public String getTimeRightNow(){
         Date now = Calendar.getInstance().getTime();
-       return simpleDateFormat.format(now);
+        return simpleDateFormat.format(now);
     }
-
 
     public boolean isEncFieldSet() {
         return isEncFieldSet;
@@ -164,7 +162,6 @@ class Utils {
     public void setEncFieldSet(boolean encFieldSet) {
         isEncFieldSet = encFieldSet;
     }
-
 
 
     public  EditText getEditText(Activity activity){
@@ -198,12 +195,9 @@ class Utils {
     }
 
     public void getCameraPermission(Activity app){
-        if (ContextCompat.checkSelfPermission(app, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-        }
-        else {
 
+        if (ContextCompat.checkSelfPermission(app, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (app.checkSelfPermission(Manifest.permission.CAMERA)
                         != PackageManager.PERMISSION_GRANTED) {
@@ -213,6 +207,83 @@ class Utils {
             }
 
         }
+
+    public void getPassword(Activity activity, final String information, final MenuItem item, final String action, Integer position) {
+
+        final EditText input = Utils.getInstance().getEditText(activity);
+        final AlertDialog.Builder builder = Utils.getInstance().getAlertBox(activity,information,input);
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                activity.invalidateOptionsMenu();
+                String pass = input.getText().toString();
+                NoteDao n = Utils.getInstance().getNoteQuerryInterfce(activity.getApplicationContext(),null);
+
+                if (action.equals("check_edit")) {
+                    if (n.getFromPosition(-1).getBody().equals(Utils.getInstance().hashBasedCheck(pass))) {
+                        Utils.getInstance().setPasswd(pass);
+                        Intent add = new Intent(activity, AddNote.class);
+                        add.putExtra("position", String.valueOf(position)); //open for add ?
+                        activity.startActivityForResult(add, 0);
+
+
+                    } else {
+                        getPassword(activity,"Wrong password, please try again", item, action,position);
+                        builder.setTitle("Wrong pass");
+                    }
+                }
+
+                if (action.equals("check_menu")) {
+                    if (n.getFromPosition(-1).getBody().equals(Utils.getInstance().hashBasedCheck(pass))) {
+                        Utils.getInstance().setPasswd(pass);
+                        Utils.getInstance().setEnc(true);
+
+                    } else {
+                        getPassword(activity,"Wrong password, please try again", item, action,position);
+                        builder.setTitle("Wrong pass");
+                    }
+                    item.setIcon(R.drawable.ic_no_encryption_black_24dp);
+                    item.setTitle("Disable encryption");
+                }
+
+                if (action.equals("enc")) {
+                    Utils.getInstance().setEnc(true);
+                    Utils.getInstance().setPasswd(pass);
+                    n.insert(new Note("enc", Utils.getInstance().hashBasedCheck(pass), -1));
+                    Utils.getInstance().setEncFieldSet(true);
+                    Utils.getInstance().setEnc(true);
+                    item.setIcon(R.drawable.ic_no_encryption_black_24dp);
+                    item.setTitle("Disable encryption");
+                    try {
+                        //encryptAll(n);w
+                        Toast.makeText(activity.getApplicationContext(), "Encryption enabled", Toast.LENGTH_SHORT).show();
+                    } catch (Exception ignore) {}
+                }
+
+            }
+
+
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+
+            }
+        });
+
+        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+
+            }
+        });
+
+        builder.show();
     }
 
-}
+    }
+
+
