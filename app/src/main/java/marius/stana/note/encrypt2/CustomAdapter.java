@@ -121,27 +121,23 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
                 notes.showAll();
             if(charString.isEmpty() == false)
                 for(int i=0;i<notes.getNotes().size();i++) {
-                        if( notes.getFromPosition(i).isEncrypted() && Utils.getInstance().isEnc())
-                        {
-                            if (!notes.getFromPosition(i).decrypt().getBody().contains(charString) || !notes.getFromPosition(i).getTitle().contains(charString));
-                              continue;
-                        }else
-                            {
-                                if (notes.getFromPosition(i).getTitle().contains(charString))
-                                {
-                                    continue;
-                                }
-                                if (notes.getFromPosition(i).isEncrypted() ==false && notes.getFromPosition(i).getBody().contains(charString))
-                                {
-                                   continue;
-                                }
+                    if(Utils.getInstance().isEnc()){
+                        if(notes.getFromPosition(i).getTitle().contains(charString) || (notes.getFromPosition(i).getBody() !=null && notes.getFromPosition(i).decrypt().getBody().contains(charString)))
+                            continue;
+                    }
+                    else{
+                        if(notes.getFromPosition(i).isEncrypted() ==false ) {
+                            if (notes.getFromPosition(i).getTitle().contains(charString) || (notes.getFromPosition(i).getBody() !=null && notes.getFromPosition(i).getBody().contains(charString)))
+                                continue;
+                        } else{
+                            if (notes.getFromPosition(i).getTitle().contains(charString))
+                                continue;
                         }
-                    notes.setHidden(notes.getFromPosition(i).getPosition());
+                    }
+                    notes.setHidden(i);
                 }
             else
-                notes.showAll();;
-                //notes.search(charString);
-
+                notes.showAll();
                 FilterResults filterResults = new FilterResults();
                 filterResults.values = filtered;
                 return filterResults;

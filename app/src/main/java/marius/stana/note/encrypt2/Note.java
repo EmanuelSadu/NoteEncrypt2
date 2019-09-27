@@ -151,6 +151,8 @@ public class Note {
     }
 
     String getBody() {
+        if (body == null)
+            return "";
         return this.body;
     }
 

@@ -21,13 +21,7 @@
         android:roundIcon="@mipmap/ic_iccc_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".ReceiveActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_receive_activity"
-            android:theme="@style/FullscreenTheme"></activity>
-        <activity android:name=".QRActivity"
-            android:configChanges="orientation|keyboard"/>
+
         <activity android:name=".MainActivity"
             android:configChanges="orientation|keyboard">
 
