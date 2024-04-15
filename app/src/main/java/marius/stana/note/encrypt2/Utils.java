@@ -18,6 +18,17 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -30,13 +41,17 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 class Utils {
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int MY_CAMERA_REQUEST_CODE = 100;
+    private static final String URL ="http://127.0.0.1:7878" ;
 
     private boolean enc;
     private boolean isEncFieldSet;
@@ -44,6 +59,8 @@ class Utils {
 
     private static SimpleDateFormat simpleDateFormat= new SimpleDateFormat("EEE, d MM yyyy hh:mm aaa");
     private String passwd=null;
+
+
 
     public String getPasswd() {
         return passwd;
@@ -284,6 +301,6 @@ class Utils {
         builder.show();
     }
 
-    }
+}
 
 

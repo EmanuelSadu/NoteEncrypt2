@@ -74,8 +74,8 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         super.onActivityResult(requestCode, resultCode, data);
-        NoteDao n = Utils.getInstance().getNoteQuerryInterfce(this,null);
 
+        NoteDao n = Utils.getInstance().getNoteQuerryInterfce(this,null);
 
         if(data.getIntExtra("deleted",-1)>=0){
             adapter.notifyItemRemoved(data.getIntExtra("deleted",0));
@@ -192,7 +192,13 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
 
         }
 
+        if (item.getItemId() == R.id.action_receive) {
+            ServerOpUtil.volleyGetNotesFromServer(getApplicationContext());
+        }
 
+        if (item.getItemId() == R.id.action_send) {
+            ServerOpUtil.volleyPostNotesToServer(getApplicationContext());
+        }
 
         return true;
 
@@ -218,9 +224,8 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
             menu.findItem(R.id.action_toggle_fingerprint).setVisible(true);
         }
 
-        //TO-DO
-        menu.findItem(R.id.action_send).setEnabled(false);
-        menu.findItem(R.id.action_receive).setEnabled(false);
+        //TO-DO Implement server
+       ServerOpUtil.checkServer(MainActivity.this, menu);
 
         return true;
     }

@@ -7,8 +7,12 @@ import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Objects;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -133,6 +137,18 @@ public class Note {
         org=null;
     }
 
+    public static Note noteFRomJson (JSONObject org) throws JSONException {
+
+        String title = org.getString("title");
+        String body = org.getString("body");
+        int position = org.getInt("position");
+        String timestamp = org.getString("timestamp");
+
+        Note note =  new Note(title,body,position);
+
+        return note;
+    }
+
     public int getPosition() {
         return position;
     }
@@ -190,5 +206,14 @@ public class Note {
 
     public void setFile(String file) {
         this.file = file;
+    }
+
+    @Override
+    public int hashCode (){
+        int result  =1 ;
+        result = result + Objects.hashCode(title);
+        result = result + Objects.hashCode(body);
+        result = result + Objects.hashCode(timeStamp);
+        return result;
     }
 }
