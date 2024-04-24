@@ -194,10 +194,13 @@ public class MainActivity extends AppCompatActivity implements CustomAdapter.Ite
 
         if (item.getItemId() == R.id.action_receive) {
             ServerOpUtil.volleyGetNotesFromServer(getApplicationContext());
+            //Replace with intent in future.
+            //recycleView.getNotesList().smoothScrollToPosition(0);
+            //adapter.notifyItemInserted(0);
         }
 
         if (item.getItemId() == R.id.action_send) {
-            ServerOpUtil.volleyPostNotesToServer(getApplicationContext());
+            ServerOpUtil.volleyPostNotesToServer(getApplicationContext(),n.getNotes());
         }
 
         return true;

@@ -39,6 +39,12 @@
                 app:showAsAction="ifRoom" />
 
 
+            <item
+                android:id="@+id/action_upload"
+                android:icon="@android:drawable/ic_menu_share"
+                android:title="@string/upload"
+                app:showAsAction="ifRoom" />
+
         </menu>
     </item>
 

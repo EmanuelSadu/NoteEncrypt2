@@ -34,6 +34,8 @@ import android.support.annotation.NonNull;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 
@@ -246,6 +248,9 @@ public class AddNote extends AppCompatActivity {
         if (item.getItemId() == R.id.action_delete) {
             delete();
 
+        }
+        if(item.getItemId() == R.id.action_upload){
+            upload();
         }
         return true;
     }
@@ -540,6 +545,15 @@ public class AddNote extends AppCompatActivity {
             bodyEdit.setText(backupNote.decrypt().getBody());
             switchBar.setChecked(backupNote.isEncrypted());
             onBackPressed();
+        }
+    }
+
+    public void upload(){
+        if (reason == true) {
+            ServerOpUtil.checkServer(getApplicationContext(),null);
+            ServerOpUtil.volleyPostNotesToServer(getApplicationContext(), Arrays.asList(backupNote));
+        } else {
+
         }
     }
 }

@@ -18,6 +18,8 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import okhttp3.internal.Util;
+
 @Entity(tableName = "note")
 public class Note {
     @NonNull
@@ -30,8 +32,9 @@ public class Note {
     private String file;
 
 
-    @PrimaryKey(autoGenerate = true)
-    private int key;
+    @PrimaryKey
+    @NonNull
+    private String noteId;
 
     //Encrypts note with AES
     public Note encrypt() {
@@ -39,7 +42,7 @@ public class Note {
             try {
                 String passwd = Utils.getInstance().getPasswd();
 
-                IvParameterSpec iv = new IvParameterSpec(Utils.getInstance().hashBasedCheck(String.valueOf(key))
+                IvParameterSpec iv = new IvParameterSpec(Utils.getInstance().hashBasedCheck(String.valueOf(noteId))
                         .substring(48)
                         .getBytes(StandardCharsets.UTF_8));
 
@@ -64,7 +67,7 @@ public class Note {
             return this;
         }
         try {
-            IvParameterSpec iv = new IvParameterSpec(Utils.getInstance().hashBasedCheck(String.valueOf(this.key))
+            IvParameterSpec iv = new IvParameterSpec(Utils.getInstance().hashBasedCheck(String.valueOf(this.noteId))
                     .substring(48)
                     .getBytes(StandardCharsets.UTF_8));
 
@@ -88,12 +91,12 @@ public class Note {
         return position + title + body;
     }
 
-    int getKey() {
-        return key;
+    String getNoteId() {
+        return noteId;
     }
 
-    void setKey(int key) {
-        this.key = key;
+    void setNoteId(String noteId) {
+        this.noteId = noteId;
     }
 
 
@@ -101,7 +104,7 @@ public class Note {
         this.title = title;
         this.body = body;
         this.position = position;
-
+        this.noteId = Utils.getInstance().hashBasedCheck(Utils.getInstance().getTimeRightNow());
     }
 
     @Override
@@ -133,7 +136,7 @@ public class Note {
         this.setFile(org.getFile());
         this.setPosition(org.getPosition());
         this.setTimeStamp(org.getTimeStamp());
-        this.setKey(org.getKey());
+        this.setNoteId(org.getNoteId());
         org=null;
     }
 
@@ -145,7 +148,9 @@ public class Note {
         String timestamp = org.getString("timestamp");
 
         Note note =  new Note(title,body,position);
-
+        note.setTimeStamp(timestamp);
+        note.setNoteId(org.getString("noteId"));
+        note.setEncrypted(org.getBoolean("encrypted"));
         return note;
     }
 
@@ -166,11 +171,12 @@ public class Note {
         this.title = title;
     }
 
-    String getBody() {
+    public String getBody() {
         if (body == null)
             return "";
         return this.body;
     }
+
 
     String getTimeStamp() {
         return this.timeStamp;
@@ -180,7 +186,7 @@ public class Note {
         this.timeStamp = timeStamp;
     }
 
-    void setBody(String body) {
+    public void setBody(String body) {
         this.body = body;
     }
 

@@ -24,6 +24,8 @@ public interface NoteDao {
     void decreasePositions(int position);
     @Query("Update note SET position = position + 1 WHERE position > :position")
     void increasePositions(int position);
+    @Query("Update note SET position = position + :factor WHERE position >= :position")
+    void insertByFactor(int position, int factor);
     @Query("Update note SET hidden = 0")
     void showAll();
     @Query("Update note SET hidden = CASE WHEN title LIKE :searchString OR body LIKE :searchString then 0 else 1 END")
@@ -36,4 +38,8 @@ public interface NoteDao {
     void updateTimestampFromPosition(int position,String createTIme);
     @Query("Update note SET isEncrypted = :enc WHERE position == :position")
     void updateIsEncriptedFromPosition(int position,boolean enc);
+    @Query("Select count(*) From note WHERE noteId == :noteId")
+    int checkIfExists(String noteId);
+    @Query("Select * From note WHERE noteId == :noteId")
+    Note getNoteWithNoteId(String noteId);
 }
